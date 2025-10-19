@@ -1,0 +1,448 @@
+{
+	"info": {
+		"_postman_id": "0e1a9678-3ded-4f74-94ba-5f373bb096e6",
+		"name": "Library",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38046639"
+	},
+	"item": [
+		{
+			"name": "Create book",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var Data = pm.response.json();\r",
+							"var postData = JSON.parse(pm.request.body.raw);\r",
+							"let expectedId = getBookIdFromBody();\r",
+							"console.log(\"expected id is : \" + expectedId);\r",
+							"pm.collectionVariables.set(\"flag\",false);\r",
+							"\r",
+							"\r",
+							"function safeTest(name, fn) {\r",
+							"    pm.test(name, function () {\r",
+							"        try {\r",
+							"            fn();\r",
+							"        } catch (err) {\r",
+							"            console.error(`❌ Error in test '${name}':`, err.message);\r",
+							"            pm.expect.fail(`error in test '${name}': ${err.message}`);\r",
+							"        }\r",
+							"    });\r",
+							"};\r",
+							"function cleanUpScript(){\r",
+							"    const currentBookId = getBookIdFromBody();\r",
+							"    pm.collectionVariables.set(\"UserId\",currentBookId)\r",
+							"    pm.execution.setNextRequest(\"Delete_book\")\r",
+							"};\r",
+							"function getBookIdFromBody(){\r",
+							"    return bookId = postData.isbn + postData.aisle;\r",
+							"};\r",
+							"\r",
+							"\r",
+							"safeTest(\"Check status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"safeTest(\"Response is valid JSON\", function () {\r",
+							"    pm.expect(() => pm.response.json()).to.not.throw();\r",
+							"});\r",
+							"\r",
+							"safeTest(\"Check status code is ok \", function () {\r",
+							"    pm.response.to.be.ok;\r",
+							"});\r",
+							"\r",
+							"safeTest(\"Check if ID is present in response\", function () {\r",
+							"    pm.environment.set(\"UserId\", Data.ID);\r",
+							"});\r",
+							"\r",
+							"safeTest(\"Check book id calculation logic\", function () {\r",
+							"    pm.expect(Data.ID).to.eql(expectedId);\r",
+							"  \r",
+							"});\r",
+							"\r",
+							"safeTest(\"Validate that response contain all expected fields\", function () {\r",
+							"    pm.expect(Data).to.have.property('ID');\r",
+							"    pm.expect(Data).to.have.property('Msg');\r",
+							"});\r",
+							"\r",
+							"safeTest(\"validate that Msg to be successful\", function () {\r",
+							"    pm.expect(Data.Msg).to.eql(\"successfully added\");\r",
+							"});\r",
+							"\r",
+							"safeTest(\"validate that header Contetnt-type is exist\", function () {\r",
+							"    pm.response.to.have.header('Content-Type');\r",
+							"});\r",
+							"\r",
+							"safeTest(\"Validate that content-Type header have value \", function () {\r",
+							"    pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/json;charset=UTF-8');\r",
+							"});\r",
+							"\r",
+							"safeTest(\"Validate that content-Type header contain Json value \", function () {\r",
+							"    pm.expect(pm.response.headers.get('Content-Type')).to.contain('/json');\r",
+							"});\r",
+							"\r",
+							"safeTest(\"validate the response time is less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"})\r",
+							"\r",
+							"safeTest(\"validat that response body contain a certain word\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"successfully\");\r",
+							"});\r",
+							"\r",
+							"safeTest(\"validate success Msg\",function(){\r",
+							"   try{ pm.expect(Data.Msg).to.be.eql(\"successfully added\")\r",
+							"   }catch(e){\r",
+							"        pm.collectionVariables.set(\"flag\",true);\r",
+							"        cleanUpScript();\r",
+							"   };\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const companyCode = \"BK\";\r",
+							"const randVal = pm.variables.replaceIn('{{$randomInt}}');\r",
+							"pm.collectionVariables.set(\"isbn\",companyCode+randVal);\r",
+							"pm.collectionVariables.set(\"bookName\",pm.iterationData.get(\"bookName\"));\r",
+							"pm.collectionVariables.set(\"aisle\",randVal);\r",
+							"pm.collectionVariables.set(\"authorName\",pm.iterationData.get(\"authorName\"));"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\"name\":\"{{bookName}} \",\r\n\"isbn\":\"{{isbn}}\",\r\n\"aisle\":\"{{aisle}}\",\r\n\"author\":\"{{authorName}}\"\r\n}\r\n \r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{libraryBaseUrl}}{{AddBook}}",
+					"host": [
+						"{{libraryBaseUrl}}{{AddBook}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Book",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"function safeTest(name, fn){\r",
+							"    pm.test(name, function() {\r",
+							"        try{\r",
+							"            fn();\r",
+							"        } catch(err){\r",
+							"            console.error(`❌ Error in test '${name}':`, err.message);\r",
+							"            pm.expect.fail(`error in test '${name}': ${err.message}`);\r",
+							"        }\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"\r",
+							"pm.test(\"Check status code is 200\", function () {\r",
+							"        pm.response.to.have.status(200);\r",
+							"    });\r",
+							"pm.test(\"Response is valid JSON\", function () {\r",
+							"        pm.expect(() => pm.response.json()).to.not.throw();\r",
+							"    });\r",
+							"    \r",
+							"pm.test(\"Check status code is ok \", function () {\r",
+							"        pm.response.to.be.ok;\r",
+							"    });\r",
+							"\r",
+							"var data = pm.response.json();\r",
+							"\r",
+							"// pm.test(\"checks if the response has return the correct data \",function(){\r",
+							"//         pm.expect(data).to.be.an('array');\r",
+							"//         data.forEach(book => {\r",
+							"//             pm.expect(book).to.have.property(\"book_name\");\r",
+							"//             pm.expect(book).to.have.property(\"isbn\");\r",
+							"//             pm.expect(book).to.have.property(\"aisle\")\r",
+							"//         });\r",
+							"//     });\r",
+							"safeTest(\"checks if the response has return the correct data \",function(){\r",
+							"        pm.expect(data).to.be.an('array');\r",
+							"        data.forEach(book => {\r",
+							"            pm.expect(book).to.have.property(\"book_name\");\r",
+							"            pm.expect(book).to.have.property(\"isbn\");\r",
+							"            pm.expect(book).to.have.property(\"aisle\");\r",
+							"        });\r",
+							"    });\r",
+							"\r",
+							"// safeTest('validate the response values ',function(){\r",
+							"//     pm.expect(data[0].book_name).to.eql(pm.collectionVariables.get(\"bookName\"));\r",
+							"\r",
+							"// });"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{libraryBaseUrl}}{{GetBook}}?AuthorName={{authorName}}",
+					"host": [
+						"{{libraryBaseUrl}}{{GetBook}}"
+					],
+					"query": [
+						{
+							"key": "AuthorName",
+							"value": "{{authorName}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Book by Id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Check status code is 200\", function () {\r",
+							"pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response is valid JSON\", function () {\r",
+							"    pm.expect(() => pm.response.json()).to.not.throw();})\r",
+							"    \r",
+							"pm.test(\"Check status code is ok \", function () {\r",
+							" pm.response.to.be.ok;\r",
+							" })"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{libraryBaseUrl}}{{GetBookId}}?ID={{UserId}}",
+					"host": [
+						"{{libraryBaseUrl}}{{GetBookId}}"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "{{UserId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete_book",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Check if the file is deleted successfully\", function () {\r",
+							"    pm.expect(pm.response.json().msg).to.include(\"book is successfully deleted\");}\r",
+							" );\r",
+							"\r",
+							"pm.test(\"status code is 200\",function(){\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"if(pm.collectionVariables.get(\"flag\")){\r",
+							"    pm.execution.setNextRequest(\"Create book\");\r",
+							"};\r",
+							"\r",
+							"pm.test(\"Response time is less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const bookName = \"karim testingg\";\r",
+							"const getUrl = pm.collectionVariables.get(\"libraryBaseUrl\") + pm.collectionVariables.get(\"GetBookId\")+'?ID='+pm.environment.get(\"UserId\");\r",
+							"\r",
+							"const deleteUrl = pm.collectionVariables.get(\"libraryBaseUrl\") + pm.collectionVariables.get(\"DeleteBook\") ;\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							"// pm.sendRequest({\r",
+							"//     url: getUrl,\r",
+							"//     method: 'GET'\r",
+							"// }, function (err, res) {\r",
+							"//     if (err) {\r",
+							"//         console.error(\"❌ Error checking if book exists:\", err);\r",
+							"//         return;\r",
+							"//     }\r",
+							"//     let data;\r",
+							"//     try {\r",
+							"//         data = res.json();\r",
+							"//     } catch (parseErr) {\r",
+							"//         console.error(\"⚠️ Could not parse response:\", parseErr);\r",
+							"//         return;\r",
+							"//     }\r",
+							"\r",
+							"//     let existingBooks = [];\r",
+							"//     if (Array.isArray(data)) {\r",
+							"//         existingBooks = data;\r",
+							"//     } else if (typeof data === 'object' && data !== null) {\r",
+							"//         existingBooks = [data];  // wrap single book in array for uniform handling\r",
+							"//     }\r",
+							"\r",
+							"//     if (existingBooks.length > 0) {\r",
+							"//         const bookId = existingBooks[0].ID;\r",
+							"//         console.log(`🧹 Book already exists (ID: ${bookId}). Deleting before adding again.`);\r",
+							"\r",
+							"//         pm.sendRequest({\r",
+							"//             url: deleteUrl,\r",
+							"//             method: 'POST',\r",
+							"//             header: { 'Content-Type': 'application/json' },\r",
+							"//             body: {\r",
+							"//                 mode: 'raw',\r",
+							"//                 raw: JSON.stringify({ ID: bookId })  // API expects capital \"ID\"\r",
+							"//             }\r",
+							"//         }, function (delErr, delRes) {\r",
+							"//             if (delErr) {\r",
+							"//                 console.error(\"❌ Error deleting existing book:\", delErr);\r",
+							"//             } else {\r",
+							"//                 console.log(`✅ Deleted book ID ${bookId}. Status: ${delRes.code}`);\r",
+							"//             }\r",
+							"//         });\r",
+							"//     } else {\r",
+							"//         console.log(\"✅ No existing book found — ready to add new one.\");\r",
+							"//     }\r",
+							"// });\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \r\n\"ID\" : \"{{UserId}}\"\r\n \r\n} \r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{libraryBaseUrl}}{{DeleteBook}}",
+					"host": [
+						"{{libraryBaseUrl}}{{DeleteBook}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					"try {\r",
+					"    console.log(`✅ Completed request: ${pm.info.requestName}`);\r",
+					"    // pm.environment.unset(\"tempBookId\");\r",
+					"} catch (err) {\r",
+					"    console.error(`⚠️ Teardown failed for ${pm.info.requestName}: ${err.message}`);\r",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "libraryBaseUrl",
+			"value": ""
+		},
+		{
+			"key": "GetBookId",
+			"value": ""
+		},
+		{
+			"key": "DeleteBook",
+			"value": ""
+		},
+		{
+			"key": "isbn",
+			"value": ""
+		},
+		{
+			"key": "bookName",
+			"value": ""
+		},
+		{
+			"key": "aisle",
+			"value": ""
+		},
+		{
+			"key": "authorName",
+			"value": ""
+		},
+		{
+			"key": "flag",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
